@@ -1,0 +1,22 @@
+name: Deploy CAIP Σ2025 Documentation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Commit and Push Documentation
+        run: |
+          git config --global user.name "Dr. Abdulmajeed Nomman"
+          git config --global user.email "m3nt@hotmail.com"
+          git checkout -b strategic-defense
+          git add docs README.md LICENSE
+          git commit -m "🛡️ Add Strategic Defense Plan CAIP-Σ2025"
+          git push -u origin strategic-defense
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
