@@ -10,6 +10,38 @@ This model includes:
 Note: This is an educational symbolic model, not a real AGI.
 """
 
+import ast
+import operator as op
+
+
+def safe_eval(expr):
+    """Safely evaluate a basic arithmetic expression."""
+    allowed_operators = {
+        ast.Add: op.add,
+        ast.Sub: op.sub,
+        ast.Mult: op.mul,
+        ast.Div: op.truediv,
+        ast.Mod: op.mod,
+        ast.Pow: op.pow,
+        ast.USub: op.neg,
+    }
+
+    def _eval(node):
+        if isinstance(node, ast.Num):
+            return node.n
+        if isinstance(node, ast.BinOp):
+            if type(node.op) not in allowed_operators:
+                raise ValueError("Unsupported operator")
+            return allowed_operators[type(node.op)](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp):
+            if type(node.op) not in allowed_operators:
+                raise ValueError("Unsupported operator")
+            return allowed_operators[type(node.op)](_eval(node.operand))
+        raise ValueError("Unsupported expression")
+
+    tree = ast.parse(expr, mode="eval")
+    return _eval(tree.body)
+
 class AGI:
     def __init__(self):
         # Knowledge base as fact: explanation dictionary
@@ -53,9 +85,9 @@ class AGI:
         return "I do not know the exact answer, I need to learn more."
 
     def do_math(self, expr):
-        """Attempt to solve simple mathematical expressions"""
+        """Attempt to solve simple mathematical expressions safely"""
         try:
-            result = eval(expr)
+            result = safe_eval(expr)
             print(f"Solved math expression: {expr} = {result}")
             return result
         except Exception:
