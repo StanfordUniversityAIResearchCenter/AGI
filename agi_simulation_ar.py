@@ -11,6 +11,37 @@
 """
 
 import random
+import ast
+import operator as op
+
+
+def safe_eval(expr):
+    """تقييم آمن لتعبير حسابي بسيط"""
+    allowed_operators = {
+        ast.Add: op.add,
+        ast.Sub: op.sub,
+        ast.Mult: op.mul,
+        ast.Div: op.truediv,
+        ast.Mod: op.mod,
+        ast.Pow: op.pow,
+        ast.USub: op.neg,
+    }
+
+    def _eval(node):
+        if isinstance(node, ast.Num):
+            return node.n
+        if isinstance(node, ast.BinOp):
+            if type(node.op) not in allowed_operators:
+                raise ValueError("مشغل غير مدعوم")
+            return allowed_operators[type(node.op)](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp):
+            if type(node.op) not in allowed_operators:
+                raise ValueError("مشغل غير مدعوم")
+            return allowed_operators[type(node.op)](_eval(node.operand))
+        raise ValueError("تعبير غير مدعوم")
+
+    tree = ast.parse(expr, mode="eval")
+    return _eval(tree.body)
 
 class AGI:
     def __init__(self):
@@ -55,9 +86,9 @@ class AGI:
         return "لا أعلم الإجابة بدقة، سأحتاج لتعلم المزيد."
 
     def do_math(self, expr):
-        """محاولة حل التعبيرات الحسابية البسيطة"""
+        """محاولة حل التعبيرات الحسابية البسيطة بشكل آمن"""
         try:
-            result = eval(expr)
+            result = safe_eval(expr)
             print(f"تم حل العملية الحسابية: {expr} = {result}")
             return result
         except Exception:
